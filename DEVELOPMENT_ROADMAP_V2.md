@@ -1,8 +1,9 @@
 # VTuber 솔루션 개발 로드맵 V2 (개정판)
 
-> **버전**: 2.0
+> **버전**: 2.1
 > **최종 수정**: 2025-11-17
 > **변경 이력**: [ROADMAP_REVIEW.md](./ROADMAP_REVIEW.md) 참조
+> **V2.1 업데이트**: Live2D 파트별 AI 생성 전략 추가
 
 ## 📋 개정 요약
 
@@ -11,6 +12,7 @@
 - ✅ 보안 시스템 추가 (Phase 1.4)
 - ✅ 3D 우선 개발 (VRM 기반, 2D는 Post-MVP)
 - ✅ 템플릿 기반 접근 (자동 생성 → 현실적 방식)
+- ✅ **Live2D 파트별 AI 생성** ⭐ (V2.1 신규)
 - ✅ WebSocket 클라이언트 통합 (Phase 8)
 - ✅ 각 Phase에 테스트 포함
 - ✅ 국제화(i18n) 추가
@@ -20,8 +22,8 @@
 
 **구조 변경**:
 - Phase 수: 22개 → **20개**
-- 총 단계: 700개 → **650개** (정리 및 추가)
-- MVP 기간: 12개월 → **6개월**
+- 총 단계: 700개 → **665개** (V2.1: +15 파트 생성)
+- MVP 기간: 12개월 → **6개월** (2D 포함 시 +2개월)
 
 ---
 
@@ -166,14 +168,15 @@
 50. Base 모델 및 믹스인 (timestamps, soft delete)
 51. User 모델 정의
 52. Project 모델 정의 (VTuber 프로젝트)
-53. Avatar 모델 정의 (VRM 메타데이터)
+53. Avatar 모델 정의 (VRM, Live2D 메타데이터)
 54. VoiceModel 모델 정의
 55. Session 모델 정의 (트래킹 세션)
-56. 모델 관계 설정 (Foreign Keys, Relationships)
-57. 인덱스 설계 및 추가
-58. 초기 마이그레이션 파일 생성
-59. 데이터베이스 시딩 스크립트
-60. Phase 1.2 DB 테스트
+56. **FacePart 모델 정의 ⭐ (파트 DB - V2.1 신규)**
+57. 모델 관계 설정 (Foreign Keys, Relationships)
+58. 인덱스 설계 및 추가
+59. 초기 마이그레이션 파일 생성
+60. 데이터베이스 시딩 스크립트
+61. Phase 1.2 DB 테스트
 
 ### Phase 1.3: 인증 및 권한 (61-75)
 61. JWT 토큰 생성/검증 (python-jose)
@@ -770,61 +773,92 @@
 
 # 🚀 Post-MVP 개발 (Phase 10-20)
 
-## Phase 10: 2D Live2D 아바타 시스템 (546-590)
+## Phase 10: 2D Live2D 아바타 시스템 (546-605) ⭐
 
-> **전략**: 템플릿 기반 + 파츠 교체
+> **전략**: 템플릿 기반 + AI 파트별 생성 + 파츠 DB
+> **핵심**: 얼굴 사진 → Face Parsing → 파트 추출 → SD 스타일화 → 템플릿 조합
 
-### Phase 10.1: Live2D 준비 (546-560)
+### Phase 10.1: Live2D 기초 (546-560)
 546. Live2D Cubism SDK 라이선스 검토
-547. Live2D SDK (Web) 통합
+547. Live2D SDK (Web) 통합 (PixiJS)
 548. Live2D 모델 포맷 (.moc3) 파싱
-549. **Live2D 템플릿 준비 (3-5개)** ⭐
-550. 템플릿 메타데이터 (파라미터 목록)
-551. 템플릿 DB 모델
-552. Live2D 렌더러 (PixiJS)
+549. **Live2D 템플릿 준비 (5-10개)** ⭐
+550. 템플릿 메타데이터 및 파츠 매핑 테이블
+551. 템플릿별 파라미터 목록 (30-50개)
+552. Live2D 렌더러 (PixiJS 통합)
 553. 2D 모델 로드 및 검증
 554. 파라미터 매핑 시스템
-555. 표정 파라미터 (30-50개)
-556. 움직임 파라미터
-557. 물리 시뮬레이션 (Physics)
+555. 물리 시뮬레이션 (Physics)
+556. 템플릿 DB 모델 정의
+557. 템플릿 업로드 API
 558. Phase 10.1 Live2D 통합 테스트
-559. Live2D 라이선스 문서
+559. Live2D 라이선스 및 사용 제한 문서
 560. Live2D API 문서
 
-### Phase 10.2: 2D 커스터마이징 (561-575)
-561. 얼굴 파츠 교체 시스템 (눈, 입, 헤어)
-562. 파츠 라이브러리 구축
-563. 색상 변경 (헤어, 눈)
-564. 레이어 관리 (Z-order)
-565. 2D 템플릿 + 파츠 조합
-566. 2D 아바타 프리뷰
-567. 2D 모델 내보내기 (.moc3)
-568. 2D 아바타 생성 API
-569. Phase 10.2 2D 커스터마이징 테스트
-570. 2D 커스터마이징 UI
-571. Phase 10.2 문서
-572-575. (예비)
+### Phase 10.2: 파트별 AI 생성 시스템 ⭐ (561-585)
+561. **Face Parsing 모델 통합 (BiSeNet, face-parsing.PyTorch)**
+562. 얼굴 세그멘테이션 (11개 영역: 얼굴, 눈x2, 눈썹x2, 입, 코, 헤어, 배경 등)
+563. 파트별 마스크 생성 및 검증
+564. 파트 이미지 추출 (투명 배경 PNG)
+565. **Stable Diffusion 파트 스타일화 통합**
+566. **ControlNet 통합 (형태 유지하며 스타일 변환)**
+567. 파트 스타일 프리셋 (애니메이션, 치비, 리얼리즘)
+568. 파트별 프롬프트 템플릿 (눈: "anime eyes, clean lines", 헤어: "anime hair" 등)
+569. 배경 제거 및 알파 채널 처리 (rembg)
+570. 파트별 색상 추출 및 조정
+571. 파트 해상도 정규화 (템플릿 요구사항)
+572. 파트 품질 검증 (흐림, 왜곡 감지)
+573. **파트 DB 시스템 (face_parts 테이블)**
+574. 파트 메타데이터 저장 (타입, 스타일, 색상, 크기)
+575. 파트 검색 및 필터링 API
+576. 파트 믹스 앤 매치 시스템
+577. 파트 미리보기 생성 (조합 결과)
+578. 파트 공유 설정 (공개/비공개)
+579. GPU 리소스 관리 (SD 전용 큐)
+580. 파트 생성 진행률 추적
+581. 파트 생성 실패 시 폴백 (기본 파트)
+582. Phase 10.2 파트 생성 API (/api/v1/avatar/2d/generate-parts)
+583. Phase 10.2 파트 생성 테스트
+584. 파트 생성 UI (스타일 선택, 프리뷰)
+585. 파트 시스템 문서
 
-### Phase 10.3: 2D 애니메이션 (576-590)
-576. 트래킹 데이터 → Live2D 파라미터 변환
-577. 얼굴 방향 매핑 (AngleX, AngleY, AngleZ)
-578. 눈 깜빡임 매핑 (EyeOpen 파라미터)
-579. 시선 매핑 (EyeBallX, EyeBallY)
-580. 립싱크 매핑 (MouthOpen, MouthForm)
-581. 표정 블렌딩
-582. 물리 시뮬레이션 업데이트
-583. 2D 애니메이션 스무딩
-584. 2D/3D 전환 기능 (UI)
-585. 2D 렌더링 최적화
-586. Phase 10.3 2D 애니메이션 테스트
-587. 2D 뷰어 UI
-588. Phase 10 통합 테스트
-589. 2D 아바타 사용자 가이드
-590. Phase 10 전체 문서
+### Phase 10.3: Live2D 템플릿 통합 (586-600)
+586. Live2D 템플릿 구조 분석 (PSD 레이어)
+587. 템플릿별 파트 요구사항 정의 (매핑 JSON)
+588. PSD 레이어 구조 표준화
+589. **파트 → 템플릿 레이어 자동 매핑**
+590. **PSD 자동 편집 (psd-tools)**
+591. 레이어별 이미지 교체
+592. 레이어 블렌딩 모드 유지
+593. Z-order 및 클리핑 설정
+594. PSD 내보내기 (사용자 수동 조정용)
+595. Live2D moc3 생성 (라이선스 있을 경우 - CLI)
+596. 템플릿 파트 호환성 검증
+597. 2D 아바타 생성 API (/api/v1/avatar/2d/create)
+598. Phase 10.3 템플릿 통합 테스트
+599. 2D 아바타 생성 워크플로우 UI
+600. 템플릿 시스템 문서
+
+### Phase 10.4: 2D 애니메이션 (601-615)
+601. 트래킹 데이터 → Live2D 파라미터 변환
+602. 얼굴 방향 매핑 (AngleX, AngleY, AngleZ)
+603. 눈 깜빡임 매핑 (EyeOpen 파라미터) - Phase 3.1 활용
+604. 시선 방향 매핑 (EyeBallX, EyeBallY)
+605. 립싱크 매핑 (MouthOpen, MouthForm) - Phase 6 활용
+606. 표정 블렌딩 시스템
+607. 물리 시뮬레이션 업데이트 루프
+608. 2D 애니메이션 스무딩
+609. 2D/3D 전환 토글 (UI)
+610. 2D 렌더링 최적화 (60fps)
+611. Phase 10.4 2D 애니메이션 테스트
+612. 2D 뷰어 UI (PixiJS 캔버스)
+613. Phase 10 통합 테스트
+614. 2D 아바타 사용자 가이드
+615. Phase 10 전체 문서 및 예제
 
 ---
 
-## Phase 11: 고급 표정 및 모션 시스템 (591-615)
+## Phase 11: 고급 표정 및 모션 시스템 (616-640)
 
 ### Phase 11.1: 표정 프리셋 (591-600)
 591. 표정 프리셋 시스템 설계
@@ -1207,10 +1241,12 @@
 - **딥러닝**: PyTorch 2.0+, CUDA 11.8+
 - **컴퓨터 비전**: OpenCV 4.8+, MediaPipe 0.10+
 - **얼굴 인식**: dlib (선택적)
+- **Face Parsing**: BiSeNet, face-parsing.PyTorch ⭐ (V2.1 신규)
 - **음성 처리**: librosa, soundfile, sounddevice
 - **음성 변환**: RVC (Retrieval-based Voice Conversion)
 - **3D 생성**: DECA (얼굴), 템플릿 기반
-- **이미지 생성**: Stable Diffusion (선택적)
+- **이미지 생성**: Stable Diffusion 1.5/XL ⭐ (2D 파트 생성)
+- **ControlNet**: ControlNet 1.1 ⭐ (형태 유지 스타일 변환)
 - **배경 제거**: rembg (U2-Net)
 - **립싱크**: Rhubarb Lip Sync (또는 자체 구현)
 
@@ -1277,24 +1313,27 @@
 ### 개발 단계
 - 클라우드 개발 환경: $50-100
 - AI 모델 학습 (GPU): $200-500
+- **SD 파트 생성 테스트 (GPU)**: $100-200 ⭐ (V2.1 신규)
 - 테스트 서버: $50-100
-- **총 예상**: $300-700/월
+- **총 예상**: $400-900/월 (V2.1: +$100-200)
 
 ### 프로덕션 (초기 - 100 MAU)
 - 서버 호스팅: $100-200
 - 데이터베이스 (PostgreSQL): $50-100
 - CDN: $20-50
-- 스토리지: $20-50
+- 스토리지: $50-100 (파트 이미지 증가)
+- **SD GPU 서버 (파트 생성)**: $200-400 ⭐ (V2.1 신규)
 - 모니터링/로그: $20-50
-- 라이선스 비용: $0 (Live2D 미사용 시)
-- **총 예상**: $210-450/월
+- 라이선스 비용: $0-50 (Live2D Indie License 선택적)
+- **총 예상**: $440-950/월 (V2.1: +$230-500)
 
 ### 스케일업 (1,000 MAU)
-- GPU 서버 (추론): $300-1000
+- GPU 서버 (RVC 추론): $300-1000
+- **GPU 서버 (SD 파트 생성)**: $500-1500 ⭐ (V2.1)
 - 서버 호스팅: $300-500
 - 대역폭: $100-300
-- 스토리지: $100-200
-- **총 예상**: $800-2000/월
+- 스토리지: $200-400 (파트 DB 증가)
+- **총 예상**: $1400-3700/월 (V2.1: +$600-1700)
 
 ### 스케일업 (10,000 MAU)
 - GPU 서버: $2000-5000
@@ -1336,11 +1375,14 @@
 - **산출물**: 공개 베타 버전
 
 ### Month 7-12: Post-MVP (Phase 10-15)
-- 2D Live2D 아바타
-- 고급 기능 (표정 프리셋, 배경)
-- 성능 최적화
-- 데스크톱 앱
-- 고급 AI (SD, TTS)
+- **Month 7-8**: Phase 10 - 2D Live2D 아바타 ⭐ (파트별 AI 생성)
+  - Face Parsing + SD + ControlNet 통합
+  - 파트 DB 시스템
+  - 템플릿 기반 조합
+  - 2D 애니메이션
+- **Month 9**: Phase 11-12 - 고급 기능 (표정 프리셋, 배경, 최적화)
+- **Month 10-11**: Phase 13 - 데스크톱 앱 (Electron)
+- **Month 12**: Phase 14-15 - 배포 및 고급 AI (SD, TTS)
 
 ### Year 2+: 스케일업 (Phase 16-20)
 - 커뮤니티 기능
@@ -1498,5 +1540,155 @@ Phase 0부터 한 단계씩, 테스트 주도 개발(TDD)로 견고한 VTuber �
 
 **문서 버전 관리**:
 - V1.0: [DEVELOPMENT_ROADMAP.md](./DEVELOPMENT_ROADMAP.md) (700단계, 22 Phase)
-- V2.0: 현재 문서 (650단계, 20 Phase, 개선)
+- V2.0: 중복 제거 및 보안 강화 (650단계, 20 Phase)
+- **V2.1**: 현재 문서 (665단계, 20 Phase, Live2D 파트 생성 추가) ⭐
 - 검토 보고서: [ROADMAP_REVIEW.md](./ROADMAP_REVIEW.md)
+
+---
+
+## V2.1 업데이트 요약 (2025-11-17)
+
+### 핵심 아이디어
+> "파트별로 이미지 생성해서 템플릿에 조합하면 Live2D도 가능하지 않을까?"
+
+**정답입니다!** ✅ 이 방식이면 Live2D 자동 생성이 현실적으로 구현 가능합니다.
+
+### 새로운 접근: 파트별 AI 생성 + DB + 템플릿 조합
+
+#### 파이프라인
+```
+얼굴 사진 업로드
+    ↓
+Face Parsing (BiSeNet) - 11개 영역 세그멘테이션
+    ↓
+파트별 추출 (눈x2, 눈썹x2, 입, 코, 헤어, 얼굴, 배경)
+    ↓
+Stable Diffusion + ControlNet - 스타일 변환 (애니메이션, 치비, 리얼)
+    ↓
+파트 DB 저장 (face_parts 테이블)
+    ↓
+Live2D 템플릿 선택
+    ↓
+PSD 레이어별 파트 교체 (psd-tools)
+    ↓
+Live2D .moc3 생성 또는 PSD 내보내기
+```
+
+#### 데이터베이스 스키마 (신규)
+```sql
+CREATE TABLE face_parts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    part_type VARCHAR(20) NOT NULL, -- 'eye_left', 'eye_right', 'eyebrow_left', 'eyebrow_right',
+                                     -- 'mouth', 'nose', 'hair', 'face_base'
+    style VARCHAR(50) NOT NULL,      -- 'anime', 'chibi', 'realistic', 'custom'
+    image_url TEXT NOT NULL,         -- S3 또는 로컬 경로
+    thumbnail_url TEXT,              -- 미리보기 이미지
+    metadata JSONB,                  -- {color: '#hex', size: [w, h], position: [x, y], prompt: '...'}
+    is_public BOOLEAN DEFAULT false, -- 다른 사용자 공유 여부
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_face_parts_user ON face_parts(user_id);
+CREATE INDEX idx_face_parts_type_style ON face_parts(part_type, style);
+CREATE INDEX idx_face_parts_public ON face_parts(is_public) WHERE is_public = true;
+
+-- Live2D 템플릿 메타데이터
+CREATE TABLE live2d_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    preview_url TEXT,
+    psd_url TEXT,                    -- 원본 PSD 파일
+    parts_mapping JSONB NOT NULL,    -- {eye_left: {layer: 'Eyes/Left', size: [128,128]}, ...}
+    rigging_complete BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Phase 10 변경사항
+
+#### 추가된 단계 (+15개)
+- Phase 10.2: 파트별 AI 생성 시스템 (561-585) ⭐
+  - Face Parsing 모델 통합
+  - SD + ControlNet 파트 스타일화
+  - 파트 DB 시스템
+  - 파트 믹스 앤 매치
+  - GPU 리소스 관리 (SD 전용 큐)
+
+- Phase 10.3: Live2D 템플릿 통합 (586-600)
+  - PSD 자동 편집
+  - 레이어별 이미지 교체
+  - 템플릿 매핑 시스템
+
+#### 기술 스택 추가
+- **Face Parsing**: BiSeNet, face-parsing.PyTorch
+- **Stable Diffusion**: 1.5/XL (2D 파트 생성용)
+- **ControlNet**: 1.1 (형태 유지 스타일 변환)
+- **PSD 조작**: psd-tools
+
+#### 비용 영향
+- 개발 단계: +$100-200/월 (SD 테스트)
+- 프로덕션 (100 MAU): +$230-500/월 (SD GPU + 스토리지)
+- 스케일업 (1K MAU): +$600-1700/월
+
+### 비즈니스 모델 확장
+
+#### 파트 마켓플레이스 ⭐
+```
+무료 티어:
+- 자기 얼굴로 파트 생성 (무제한)
+- 기본 템플릿 (5개)
+- 자기 파트만 사용
+
+프리미엄 티어:
+- 고급 템플릿 (20+)
+- 프리미엄 스타일 (더 높은 품질)
+- 마켓플레이스 접근 (다른 사람 파트 구매/판매)
+- 파트 판매 수익 (70% 크리에이터, 30% 플랫폼)
+
+크리에이터:
+- 커스텀 파트 판매
+- 템플릿 판매
+- 수익 창출
+```
+
+#### 사용자 경험 개선
+1. AI가 자동으로 파트 생성 (30초-1분)
+2. 각 파트 개별 편집 가능
+3. 다른 사람의 파트로 교체 가능 (믹스 앤 매치)
+4. 무한 조합 가능성
+5. 파트 재사용 (다른 아바타에)
+
+### 기술적 실현 가능성
+
+#### ✅ 가능한 이유
+1. **Face Parsing**: 성숙한 기술 (BiSeNet, 95%+ 정확도)
+2. **SD + ControlNet**: 형태 유지하며 스타일만 변환 가능
+3. **PSD 자동 편집**: psd-tools로 레이어 조작 가능
+4. **템플릿 리깅**: 미리 리깅된 템플릿 사용 (리깅 자동화 불필요)
+
+#### ⚠️ 주의사항
+1. Live2D Cubism SDK 라이선스 (상업용 $42/월)
+2. SD 품질 일관성 유지 필요
+3. 파트 호환성 (모든 템플릿에 맞지 않을 수 있음)
+4. GPU 비용 증가
+
+### 타임라인
+
+**MVP (Month 1-6)**: 3D VRM만 (기존 계획 유지)
+**Post-MVP (Month 7-8)**: 2D Live2D 파트 생성 ⭐ (신규)
+  - Week 1-2: Face Parsing + 파트 추출
+  - Week 3-4: SD + ControlNet 파트 스타일화
+  - Week 5-6: 파트 DB 및 템플릿 통합
+  - Week 7-8: 2D 애니메이션 및 테스트
+
+### 예상 결과
+
+- **차별화**: 기존 Live2D 솔루션 대비 압도적 편의성
+- **확장성**: 파트 DB로 무한 아바타 생성
+- **커뮤니티**: 파트 공유/판매 생태계
+- **수익화**: 마켓플레이스 수수료
+
+**이제 2D Live2D도 현실적으로 달성 가능합니다!** 🎉
